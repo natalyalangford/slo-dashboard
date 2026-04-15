@@ -28,7 +28,13 @@ def main():
 
     print("\n--- Sample Strategy Columns ---")
     print(summary[[
-        "Stock", "Type", "TotalPremium", "T0POTM", "T0APR"
+        "Stock",
+        "Type",
+        "TotalPremium",
+        "T0POTM",
+        "T0APR",
+        "RealizedReturnPct",
+        "CloseAPR"
     ]].head())
 
     summary.to_csv("data/trade_summary.csv", index=False)

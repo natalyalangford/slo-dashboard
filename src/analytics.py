@@ -14,6 +14,8 @@ def calculate_trade_summary(df):
         trade_duration_days = (exit_row["ExecutionDatetime"] - entry_row["ExecutionDatetime"]).days
 
         days_to_exp = (entry_row["ExpirationDatetime"] - entry_row["ExecutionDatetime"]).days
+
+        # Entry metrics
         if days_to_exp <= 0:
             t0apr = 0
         else:
@@ -30,6 +32,42 @@ def calculate_trade_summary(df):
                 / entry_row["ExecutionQuote"]
             )
 
+        capital = entry_row["StrikePrice"] * 100 * entry_row["Quantity"]
+
+        if capital == 0:
+            realized_return_pct = 0
+        else:
+            realized_return_pct = 100.0 * (total_premium / capital)
+
+        if trade_duration_days <= 0:
+            close_apr = 0
+        else:
+            close_apr = realized_return_pct * (365 / trade_duration_days)
+
+        # Exit underlying price
+        exit_price_underlying = exit_row["ExecutionQuote"]
+
+        # Call-analysis fields
+        called_away = exit_price_underlying > entry_row["StrikePrice"]
+
+        missed_upside = max(
+            0,
+            exit_price_underlying - entry_row["StrikePrice"]
+        ) * 100 * entry_row["Quantity"]
+
+        missed_upside_pct = max(
+            0,
+            (exit_price_underlying - entry_row["StrikePrice"]) / entry_row["StrikePrice"]
+        ) * 100
+
+        # Use dad's terminology too
+        call_obligation = missed_upside
+        call_obligation_pct = missed_upside_pct
+
+        # Tail-risk flags
+        severe_event = missed_upside_pct >= 20
+        catastrophic_event = missed_upside_pct >= 50
+
         summaries.append({
             "TradeSequenceUUID": trade_id,
             "Stock": entry_row["Stock"],
@@ -38,6 +76,7 @@ def calculate_trade_summary(df):
             "Quantity": entry_row["Quantity"],
             "StrikePrice": entry_row["StrikePrice"],
             "EntryPriceUnderlying": entry_row["ExecutionQuote"],
+            "ExitPriceUnderlying": exit_price_underlying,
             "EntryOptionPrice": entry_row["Price"],
             "EntryDate": entry_row["ExecutionDatetime"],
             "ExitDate": exit_row["ExecutionDatetime"],
@@ -45,8 +84,18 @@ def calculate_trade_summary(df):
             "TotalPremium": total_premium,
             "Win": total_premium > 0,
             "TradeDurationDays": trade_duration_days,
+            "Capital": capital,
             "T0POTM": t0potm,
             "T0APR": t0apr,
+            "RealizedReturnPct": realized_return_pct,
+            "CloseAPR": close_apr,
+            "CalledAway": called_away,
+            "MissedUpside": missed_upside,
+            "MissedUpsidePct": missed_upside_pct,
+            "CallObligation": call_obligation,
+            "CallObligationPct": call_obligation_pct,
+            "SevereEvent": severe_event,
+            "CatastrophicEvent": catastrophic_event,
         })
 
     summary = pd.DataFrame(summaries)

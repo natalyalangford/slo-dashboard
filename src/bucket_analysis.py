@@ -15,23 +15,32 @@ def analyze_potm_buckets(summary_df):
     )
 
     result = df.groupby("POTM_bucket", observed=False).agg({
-        "TotalPremium": ["count", "mean", "sum"],
+        "TotalPremium": ["count", "mean", "median", "sum", "min", "max"],
         "Win": "mean",
-        "T0APR": "mean",
+        "T0APR": ["mean", "median"],
+        "CloseAPR": ["mean", "median"],
+        "RealizedReturnPct": ["mean", "median"],
         "TradeDurationDays": "mean"
     })
 
     result.columns = [
         "TradeCount",
         "AvgProfit",
+        "MedianProfit",
         "TotalProfit",
+        "WorstTrade",
+        "BestTrade",
         "WinRate",
         "AvgT0APR",
+        "MedianT0APR",
+        "AvgCloseAPR",
+        "MedianCloseAPR",
+        "AvgRealizedReturnPct",
+        "MedianRealizedReturnPct",
         "AvgDurationDays"
     ]
 
     result = result.reset_index()
-
     result["WinRate"] = result["WinRate"] * 100
 
     return result
