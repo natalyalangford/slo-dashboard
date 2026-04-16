@@ -1,18 +1,13 @@
 import pandas as pd
 
-
 def add_analysis_buckets(summary_df):
     df = summary_df.copy()
 
-    # focus only on SOXL and TQQQ
     df = df[df["Stock"].isin(["SOXL", "TQQQ"])].copy()
 
-    # 10 POTM buckets
-    potm_bins = [0, 2, 4, 6, 8, 10, 12, 15, 20, 30, 100]
-    potm_labels = [
-        "0-2%", "2-4%", "4-6%", "6-8%", "8-10%",
-        "10-12%", "12-15%", "15-20%", "20-30%", "30%+"
-    ]
+    # 🔹 POTM (4 bins)
+    potm_bins = [0, 5, 10, 15, 100]
+    potm_labels = ["0-5%", "5-10%", "10-15%", "15%+"]
 
     df["T0POTM_bucket"] = pd.cut(
         df["T0POTM"],
@@ -21,12 +16,9 @@ def add_analysis_buckets(summary_df):
         include_lowest=True
     )
 
-    # 10 APR buckets
-    apr_bins = [0, 10, 20, 30, 40, 50, 60, 80, 100, 150, 1000]
-    apr_labels = [
-        "0-10", "10-20", "20-30", "30-40", "40-50",
-        "50-60", "60-80", "80-100", "100-150", "150+"
-    ]
+    # 🔹 APR (3 bins)  ← NEW
+    apr_bins = [0, 40, 80, 1000]
+    apr_labels = ["0-40", "40-80", "80+"]
 
     df["T0APR_bucket"] = pd.cut(
         df["T0APR"],
