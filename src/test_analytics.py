@@ -5,7 +5,7 @@ from bucket_analysis import analyze_potm_buckets
 
 
 def main():
-    data = load_pickle_file("data/slo_trades_29dec25.pkl")
+    data = load_pickle_file("data/test_data.pkl")
 
     summary = calculate_trade_summary(data)
 
@@ -34,7 +34,10 @@ def main():
         "T0POTM",
         "T0APR",
         "RealizedReturnPct",
-        "CloseAPR"
+        "CloseAPR",
+        "AssignmentLoss",
+        "TotalLoss",
+        "CombinedLoss"
     ]].head())
 
     summary.to_csv("data/trade_summary.csv", index=False)

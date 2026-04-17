@@ -60,9 +60,29 @@ def calculate_trade_summary(df):
             (exit_price_underlying - entry_row["StrikePrice"]) / entry_row["StrikePrice"]
         ) * 100
 
-        # Use dad's terminology too
         call_obligation = missed_upside
         call_obligation_pct = missed_upside_pct
+
+        # Assignment loss
+        # Only applies to call trades that were assigned
+        if entry_row["Type"] == "Call" and "Assign" in group["Position"].values:
+            intrinsic_value = max(
+                0,
+                exit_price_underlying - entry_row["StrikePrice"]
+            ) * 100 * entry_row["Quantity"]
+
+            assignment_loss = intrinsic_value - total_premium
+        else:
+            assignment_loss = 0
+
+        # Unified loss metric (captures ALL downside)
+        if total_premium < 0:
+            total_loss = abs(total_premium)
+        else:
+            total_loss = 0
+
+        # Combine assignment + buy-to-close risk
+        combined_loss = max(assignment_loss, total_loss)
 
         # Tail-risk flags
         severe_event = missed_upside_pct >= 20
@@ -94,8 +114,11 @@ def calculate_trade_summary(df):
             "MissedUpsidePct": missed_upside_pct,
             "CallObligation": call_obligation,
             "CallObligationPct": call_obligation_pct,
+            "AssignmentLoss": assignment_loss,
             "SevereEvent": severe_event,
             "CatastrophicEvent": catastrophic_event,
+            "TotalLoss": total_loss,
+            "CombinedLoss": combined_loss,
         })
 
     summary = pd.DataFrame(summaries)

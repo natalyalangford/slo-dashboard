@@ -5,6 +5,7 @@ from call_analysis import (
     analyze_calls_by_potm,
     find_best_call_zones,
     find_worst_call_zones,
+    get_potm_distribution
 )
 
 
@@ -22,6 +23,14 @@ def print_metric_block(title, metrics):
 def main():
     data = load_pickle_file("data/test_data.pkl")
     summary = calculate_trade_summary(data)
+
+    print("\nCALL POTM DISTRIBUTION - ALL CALLS")
+    dist_all = get_potm_distribution(summary)
+    print(dist_all.to_string(index=False))
+
+    print("\nCALL POTM DISTRIBUTION - AMD ONLY")
+    dist_amd = get_potm_distribution(summary, stocks=["AMD"])
+    print(dist_amd.to_string(index=False))
 
     # All calls
     overall = analyze_calls(summary)
@@ -63,6 +72,9 @@ def main():
     amd_potm.to_csv("data/AMD_call_analysis_by_potm.csv", index=False)
     print("\nSaved to data/AMD_call_analysis_by_potm.csv")
 
+    call_summary = summary[summary["Type"] == "Call"].copy()
+    call_summary.to_csv("data/call_trade_summary.csv", index=False)
+    print("\nSaved to data/call_trade_summary.csv")
 
 if __name__ == "__main__":
     main()
